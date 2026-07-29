@@ -15,23 +15,53 @@ output: github_document
 
 # `{SimpleUserAuthDropboxApp}`
 
+This is a R-package template containing a Shiny-App (with golem framework) that
+integrates user management and dropbox authentification. Check the Live-App demo
+provided to get the idea.
+
+I created this as a reminder to myself how to store user information and account
+secrets in a public GitRepo, containing a R-package, containing a Shiny-App...
+in an appropriate way.
+
+This template allows you to store your dropbox account information and user names 
+and passwords in a local .Renviron file within your package. You can provide this 
+information in a safe way (as a secret) to both, GitHub and shinyapps.io or
+Connect Cloud, to get the app working or using CI tests.
+
 <!-- badges: start -->
 <!-- badges: end -->
 
 ## Installation
 
-You can install the development version of `{SimpleUserAuthDropboxApp}` like so:
+You probably want to clone the repository or download a copy to modify it to 
+your needs. However, if the Live-App is not sufficient to you and you want to 
+test the package locally, you can install the development version of 
+`{SimpleUserAuthDropboxApp}` from GitHub:
 
 ```{r}
-# FILL THIS IN! HOW CAN PEOPLE INSTALL YOUR DEV PACKAGE?
+devtools::install_github("janlisec/SimpleUserAuthDropboxApp")
 ```
 
 ## Run
 
-You can launch the application by running:
+Before launching the app locally you need to set up information regarding the 
+user list and your dropbox token in the local .Renviron file. You can use the 
+package convenience functions to achieve this.
 
 ```{r, eval = FALSE}
-SimpleUserAuthDropboxApp::run_app()
+library(SimpleUserAuthDropboxApp)
+# will open an authentication dialog for your dropbox (you should have an account)
+set_dropbox_token()
+# will set up a user 'test' with password 'test'. Please note: passwords get hashed 
+# in .Renviron
+set_app_users(users = data.frame(user = "test", password = "test"))
+# check if .Renviron of the local package was created and modified
+readLines(".Renviron")
+# now re-start R (new session to load the modified .Renviron)
+#...
+
+# now start the app locally to test...
+run_app()
 ```
 
 ## About

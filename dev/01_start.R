@@ -3,12 +3,12 @@
 #
 golem::fill_desc(
   pkg_name = "SimpleUserAuthDropboxApp",
-  pkg_title = "PKG_TITLE",
-  pkg_description = "PKG_DESC.",
+  pkg_title = "A Shiny App with partial user access control and dropbox connectivity",
+  pkg_description = "This Shiny App is set up as a Golem based R package and provides an open and a restricted tab as well as dropbox connectivity",
   authors = person(
-    given = "AUTHOR_FIRST",
-    family = "AUTHOR_LAST",
-    email = "AUTHOR@MAIL.COM",
+    given = "Jan",
+    family = "Lisec",
+    email = "jan.lisec@bam.de",
     role = c("aut", "cre")
   ),
   repo_url = NULL,
@@ -16,7 +16,7 @@ golem::fill_desc(
   set_options = TRUE
 )
 golem::install_dev_deps()
-usethis::use_mit_license("Golem User")
+usethis::use_mit_license("Jan Lisec")
 golem::use_readme_rmd(open = FALSE)
 devtools::build_readme()
 #usethis::use_code_of_conduct(contact = "Golem User")
@@ -29,6 +29,6 @@ golem::use_utils_server(with_test = TRUE)
 usethis::use_git()
 usethis::use_git_remote(
   name = "origin",
-  url = "https://github.com/<OWNER>/<REPO>.git"
+  url = "https://github.com/janlisec/SimpleUserAuthDropboxApp.git"
 )
 rstudioapi::navigateToFile("dev/02_dev.R")

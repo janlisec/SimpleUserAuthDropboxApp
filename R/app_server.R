@@ -2,13 +2,12 @@
 #'
 #' @param input,output,session Internal parameters for {shiny}.
 #'     DO NOT REMOVE.
-#' @import shiny
 #' @noRd
 app_server <- function(input, output, session) {
 
   authenticated <- shiny::reactiveVal(FALSE)
   current_user <- shiny::reactiveVal(NULL)
-  observeEvent(input$login_btn, {
+  shiny::observeEvent(input$login_btn, {
     ok <- validate_user(
       user = input$user,
       password = input$password
@@ -29,8 +28,8 @@ app_server <- function(input, output, session) {
         )
       )
     }
-    tool_a_ui("tool")
+    protected_tab_ui("tool")
   })
 
-  tool_a_server("tool", current_user = current_user)
+  protected_tab_server("tool", current_user = current_user)
 }

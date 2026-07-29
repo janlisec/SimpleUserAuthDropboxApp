@@ -3,12 +3,23 @@ Title: A Shiny App with partial user access control and dropbox connectivity
 Version: 0.0.0.9000
 Authors@R: 
     person("Jan", "Lisec", , "jan.lisec@bam.de", role = c("aut", "cre"))
-Description: This Shiny App is set up as a Golem based R package and provides an open and a restricted tab as well as dropbox connectivity
+Description: This Shiny App is set up as a Golem based R package and provides 
+    an open and a restricted tab as well as dropbox connectivity. It is a 
+    template that you can modify according to your needs.
 License: MIT + file LICENSE
 Imports: 
     config,
     golem,
-    shiny
+    jsonlite,
+    openssl,
+    rdrop2,
+    shiny,
+    sodium
+Remotes:
+    janlisec/rdrop2
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.3.3
+Suggests: 
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
