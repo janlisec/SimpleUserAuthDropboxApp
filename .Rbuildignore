@@ -8,3 +8,6 @@ $run_dev.*
 ^LICENSE\.md$
 ^README\.Rmd$
 ^\.httr-oauth$
+^app\.R$
+^rsconnect$
+^\.rscignore$

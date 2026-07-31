@@ -1,18 +1,19 @@
-# auth helpers -------------------------------------------------------------
+# auth helpers ----
 
 #' Read users from env
 #'
 #' @return data.frame
 #'
-#' @noRd
-#' @keywords internal
-#'
 #' @examples
 #' \dontrun{
 #'   read_users()
 #' }
+#'
+#' @noRd
+#' @keywords internal
+#'
 read_users <- function() {
-  json <- Sys.getenv("APP_USERS_JSON")
+  json <- read_env_value("APP_USERS_JSON")
   if (!nzchar(json)) {
     stop("APP_USERS_JSON missing")
   }
@@ -26,13 +27,14 @@ read_users <- function() {
 #'
 #' @return logical
 #'
-#' @noRd
-#' @keywords internal
-#'
 #' @examples
 #' \dontrun{
 #'   validate_user("test", "test")
 #' }
+#'
+#' @noRd
+#' @keywords internal
+#'
 validate_user <- function(user, password) {
   users <- read_users()
   hit <- which(users$user == user)
@@ -44,55 +46,121 @@ validate_user <- function(user, password) {
   identical(stored, password)
 }
 
+#' Split string into chunks
+#'
+#' @param x Character scalar.
+#' @param chunk_size Maximum chunk length.
+#'
+#' @return Character vector.
+#'
+#' @examples
+#' split_string("abcdef", chunk_size = 2)
+#'
+#' @noRd
+#' @keywords internal
+#'
+split_string <- function(x, chunk_size = 4000L) {
+  stopifnot(is.character(x), length(x) == 1L)
+  n <- nchar(x)
+  starts <- seq.int(from = 1L, to = n, by = chunk_size)
+  vapply(starts, function(i) {
+    substr(x, i, min(i + chunk_size - 1L, n))
+    }, character(1)
+  )
+}
+
 #' Get Dropbox token
 #'
 #' @return character(1)
 #'
+#' @examples
+#' \dontrun{
+#'   token_file <- get_dropbox_token()
+#'   inherits(readRDS(token_file), "Token2.0")
+#' }
+#'
 #' @noRd
 #' @keywords internal
 #'
-#' @examples
-#' \dontrun{
-#'   get_dropbox_token()
-#' }
 get_dropbox_token <- function() {
-  if (!is.na(Sys.getenv("DROPBOX_TOKEN", unset = NA_character_))) {
-    token_b64 <- Sys.getenv("DROPBOX_TOKEN", unset = NA_character_)
-    if (nzchar(token_b64)) {
-      token_file <- normalizePath(file.path(tempdir(), "token.rds"), mustWork = FALSE)
-      raw <- tryCatch(openssl::base64_decode(token_b64), error = function(e) NULL)
-      if (!is.null(raw)) {
-        writeBin(raw, token_file)
-      }
+  token_b64 <- read_env_value("DROPBOX_TOKEN")
+  if (nzchar(token_b64)) {
+    token_file <- normalizePath(file.path(tempdir(), "token.rds"), mustWork = FALSE)
+    raw <- tryCatch(openssl::base64_decode(token_b64), error = function(e) NULL)
+    if (!is.null(raw)) {
+      writeBin(raw, token_file)
     }
-    #inherits(rdrop2::drop_auth(rdstoken = token_file), "Token2.0")
   } else {
-    warning("token.rds not available")
+    stop("DROPBOX_TOKEN not configured.")
   }
   return(token_file)
 }
 
-#' Update .Renvir value for specific key
+#' Update .Renviron value
 #'
-#' @param key key.
-#' @param val, value.
+#' Write a value to .Renviron.
+#' Long values are split into numbered entries.
+#'
+#' @param key Variable name.
+#' @param val Variable value.
 #' @param renviron Path to .Renviron.
 #'
-#' @return character(1)
+#' @return Invisible NULL.
+#'
+#' @examples
+#' tmp <- tempfile()
+#' SimpleUserAuthDropboxApp:::update_Renvir_value(key = "TEST", val = "abc", renviron = tmp)
+#' readLines(tmp)
 #'
 #' @noRd
 #' @keywords internal
+#'
 update_Renvir_value <- function(key, val, renviron = ".Renviron") {
+  nchar_lim <- 4000L
   if (!file.exists(renviron)) { file.create(renviron) }
   lines <- readLines(renviron, warn = FALSE)
-  x <- paste0(key, "='", val, "'")
-  hit <- grepl(paste0("^", gsub("([.|()\\^{}+$*?]|\\[|\\])", "\\\\\\1", key), "="), lines)
-  if (any(hit)) {
-    lines[hit] <- x
+  # remove key and all split keys
+  pattern <- paste0("^", key, "(_[0-9]+)?=")
+  lines <- lines[!grepl(pattern, lines)]
+  if (nchar(val) <= nchar_lim) {
+    lines <- c(lines, paste0(key, "='", val, "'"))
   } else {
-    lines <- c(lines, x)
+    parts <- split_string(val, chunk_size = nchar_lim)
+    lines <- c(lines, paste0(key, "_", seq_along(parts), "='", parts, "'"))
   }
   writeLines(lines, renviron)
+  invisible(NULL)
+}
+
+#' Read value from .Renviron or environment
+#'
+#' @param key Variable name.
+#'
+#' @return Character scalar.
+#'
+#' @examples
+#' \dontrun{
+#' read_env_value("DROPBOX_TOKEN")
+#' }
+#'
+#' @noRd
+#' @keywords internal
+#'
+read_env_value <- function(key) {
+  val <- Sys.getenv(key, unset = "")
+  if (nzchar(val)) { return(val) }
+  parts <- character()
+  i <- 1L
+  repeat {
+    part <- Sys.getenv(paste0(key, "_", i), unset = "")
+    if (!nzchar(part)) { break }
+    parts <- c(parts, part)
+    i <- i + 1L
+  }
+  if (!length(parts)) {
+    return("")
+  }
+  paste0(parts, collapse = "")
 }
 
 #' Prepare Dropbox token for environment variable
@@ -108,17 +176,16 @@ update_Renvir_value <- function(key, val, renviron = ".Renviron") {
 #'
 #' @examples
 #' \dontrun{
-#'   set_dropbox_token(
-#'     "token.rds",
-#'     update_renviron = TRUE
-#'   )
+#'   x <- set_dropbox_token()
 #' }
 #' @export
 set_dropbox_token <- function(token_file = NULL, renviron = ".Renviron") {
   if (is.null(token_file)) {
     token <- rdrop2::drop_auth()
-    token_file <- tempfile(fileext = ".rds")
-    saveRDS(token, token_file)
+    if (inherits(token, "Token2.0")) {
+      token_file <- tempfile(fileext = ".rds")
+      saveRDS(token, token_file)
+    }
   }
   stopifnot(is.character(token_file), length(token_file) == 1L)
   if (!file.exists(token_file)) { stop("token_file does not exist") }
@@ -144,15 +211,15 @@ set_dropbox_token <- function(token_file = NULL, renviron = ".Renviron") {
 #'
 #' @examples
 #' users <- data.frame(
-#'   user = c("admin", "jan"),
-#'   password = c("secret", "geheim")
+#'   user = c("admin", "test"),
+#'   password = c("secret", "test")
 #' )
 #'
-#' set_app_users(
-#'   users = users,
-#'   hash_passwords = FALSE,
-#'   renviron = ""
-#' )
+#' set_app_users(users = users, hash_passwords = FALSE, renviron = "")
+#' set_app_users(users = users, hash_passwords = TRUE, renviron = "")
+#' \dontrun{
+#'   set_app_users(users = users, renviron = ".Renviron")
+#' }
 #' @export
 set_app_users <- function(
     users,
@@ -200,14 +267,14 @@ protected_tab_ui <- function(id) {
 protected_tab_server <- function(id, current_user) {
   shiny::moduleServer(id, function(input, output, session) {
       output$user <- shiny::renderText({
-        paste("Logged in as:", current_user())
+        paste("Logged in as user:", current_user())
       })
       output$dropbox <- shiny::renderText({
         token <- get_dropbox_token()
         rdrop2::drop_auth(rdstoken = token)
         res <- tryCatch({
             acc <- rdrop2::drop_acc()
-            paste("Dropbox OK:", acc$name$display_name)
+            paste("Dropbox account name:", acc$name$display_name)
           },
           error = function(e) { paste("Dropbox error:", e$message) }
         )

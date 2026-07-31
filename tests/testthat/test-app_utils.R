@@ -1,4 +1,13 @@
 testthat::test_that(
+  desc = "split_string works",
+  code = {
+  x <- paste(rep("a", 10000), collapse = "")
+  parts <- split_string(x, chunk_size = 4000)
+  testthat::expect_length(parts, 3L)
+  testthat::expect_identical(paste0(parts, collapse = ""), x)
+})
+
+testthat::test_that(
   desc =  "set_dropbox_token() returns a base64 string",
   code = {
     tmp_rds <- tempfile(fileext = ".rds")
@@ -33,6 +42,14 @@ testthat::test_that(
   desc = "set_dropbox_token() fails for missing file",
   code = {
     testthat::expect_error(set_dropbox_token("does_not_exist.rds"))
+  }
+)
+
+testthat::test_that(
+  desc = "get_dropbox_token() returns a valid rds file",
+  code = {
+    token_file <- get_dropbox_token()
+    testthat::expect_true(inherits(rdrop2::drop_auth(rdstoken = token_file), "Token2.0"))
   }
 )
 
@@ -74,5 +91,31 @@ testthat::test_that(
     x <- jsonlite::fromJSON(res)
     testthat::expect_false(identical(x$password, "secret"))
     testthat::expect_true(sodium::password_verify(x$password, "secret"))
+  }
+)
+
+testthat::test_that(
+  desc =  "short value overwrites split values",
+  code = {
+    tmp <- tempfile()
+    writeLines(c("TEST_1='abc'", "TEST_2='def'"), tmp)
+    update_Renvir_value(key = "TEST", val = "xyz", renviron = tmp)
+    x <- readLines(tmp, warn = FALSE)
+    testthat::expect_equal(sum(grepl("^TEST", x)), 1L)
+    testthat::expect_true(any(grepl("^TEST='xyz'$", x)))
+  }
+)
+
+testthat::test_that(
+  desc = "long value is split in .Renviron",
+  code = {
+    tmp <- tempfile()
+    update_Renvir_value(
+      key = "TEST",
+      val = paste(rep("a", 9000), collapse = ""),
+      renviron = tmp
+    )
+    x <- readLines(tmp, warn = FALSE)
+    testthat::expect_equal(sum(grepl("^TEST_", x)), 3L)
   }
 )

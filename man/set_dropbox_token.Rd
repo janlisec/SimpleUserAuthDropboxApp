@@ -22,9 +22,6 @@ base64 string suitable for DROPBOX_TOKEN.
 }
 \examples{
 \dontrun{
-  set_dropbox_token(
-    "token.rds",
-    update_renviron = TRUE
-  )
+  x <- set_dropbox_token()
 }
 }

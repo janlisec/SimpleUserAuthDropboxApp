@@ -22,13 +22,13 @@ Passwords can optionally be hashed using sodium.
 }
 \examples{
 users <- data.frame(
-  user = c("admin", "jan"),
-  password = c("secret", "geheim")
+  user = c("admin", "test"),
+  password = c("secret", "test")
 )
 
-set_app_users(
-  users = users,
-  hash_passwords = FALSE,
-  renviron = ""
-)
+set_app_users(users = users, hash_passwords = FALSE, renviron = "")
+set_app_users(users = users, hash_passwords = TRUE, renviron = "")
+\dontrun{
+  set_app_users(users = users, renviron = ".Renviron")
+}
 }
