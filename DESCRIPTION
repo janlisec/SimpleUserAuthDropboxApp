@@ -9,6 +9,7 @@ Description: This Shiny App is set up as a Golem based R package and provides
 License: MIT + file LICENSE
 Imports: 
     config,
+    desc,
     golem,
     jsonlite,
     openssl,

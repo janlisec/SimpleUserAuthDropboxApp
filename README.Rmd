@@ -29,6 +29,7 @@ information in a safe way (as a secret) to both, GitHub and shinyapps.io/
 Connect Cloud, to get the app working or using CI tests.
 
 <!-- badges: start -->
+[![Static Badge](https://img.shields.io/badge/LiveApp-blue)](https://jali-simpleuserauthdropboxapp.share.connect.posit.cloud/)
 <!-- badges: end -->
 
 ## Installation

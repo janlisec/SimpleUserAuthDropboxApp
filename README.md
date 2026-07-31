@@ -19,6 +19,8 @@ CI tests.
 
 <!-- badges: start -->
 
+[![Static
+Badge](https://img.shields.io/badge/LiveApp-blue)](https://jali-simpleuserauthdropboxapp.share.connect.posit.cloud/)
 <!-- badges: end -->
 
 ## Installation
@@ -67,10 +69,11 @@ Here are the tests results and package coverage:
 devtools::check(quiet = TRUE)
 #> ℹ Loading SimpleUserAuthDropboxApp
 #> ── R CMD check results ──────────────── SimpleUserAuthDropboxApp 0.0.0.9000 ────
-#> Duration: 1m 51.8s
+#> Duration: 1m 5.1s
 #> 
-#> ❯ checking for future file timestamps ... NOTE
-#>   unable to verify current time
+#> ❯ checking dependencies in R code ... NOTE
+#>   Namensraum im Imports Feld nicht importiert aus: 'desc'
+#>     All declared Imports should be used.
 #> 
 #> 0 errors ✔ | 0 warnings ✔ | 1 note ✖
 ```
